@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 import org.globaltester.base.PreferenceHelper;
 import org.globaltester.clverify.preferences.PreferenceConstants;
@@ -35,7 +36,7 @@ public class TraceServer implements Runnable {
 			try {
 				curClientSocket.close();
 			} catch (IOException e) {
-				BasicLogger.logException("Unable to close TraceSocket for to ClVerify", e, LogLevel.WARN,
+				BasicLogger.logException("Unable to close trace socket for ClVerify.", e, LogLevel.WARN,
 						new LogTag(BasicLogger.LOG_TAG_TAG_ID, PersoSimLogTags.CLVERIFYA_TAG_ID));
 			}
 		}
@@ -49,7 +50,7 @@ public class TraceServer implements Runnable {
 	@Override
 	public void run() {
 		BasicLogger.log(
-				"Starting trace server at port "
+				"Starting trace server for ClVerify at port "
 						+ org.globaltester.clverify.preferences.PreferenceConstants.CL_VERIFY_TRACE_SERVER_PORT + "...",
 				LogLevel.INFO, new LogTag(BasicLogger.LOG_TAG_TAG_ID, PersoSimLogTags.CLVERIFYA_TAG_ID));
 
@@ -60,8 +61,11 @@ public class TraceServer implements Runnable {
 			while (!interrupted) {
 				readAndHandleTraces(new BufferedReader(new InputStreamReader(client.getInputStream())));
 			}
+		} catch (SocketException e) {
+			BasicLogger.log("Trace server for ClVerify stopped.", LogLevel.WARN,
+					new LogTag(BasicLogger.LOG_TAG_TAG_ID, PersoSimLogTags.CLVERIFYA_TAG_ID));
 		} catch (Exception e) {
-			BasicLogger.logException("Unable to handle trace from ClVerify", e, LogLevel.ERROR,
+			BasicLogger.logException("Trace server for ClVerify stopped!", e, LogLevel.ERROR,
 					new LogTag(BasicLogger.LOG_TAG_TAG_ID, PersoSimLogTags.CLVERIFYA_TAG_ID));
 		} finally {
 			curClientSocket = null;
@@ -78,7 +82,7 @@ public class TraceServer implements Runnable {
 
 		if (Boolean.parseBoolean(PreferenceHelper.getPreferenceValue(Activator.PLUGIN_ID,
 				PreferenceConstants.CL_VERIFY_TRACE_LOG, "false"))) {
-			BasicLogger.log("CLVerifyTrace: " + readLine.replaceAll("\\P{Print}", "□"), LogLevel.TRACE,
+			BasicLogger.log("CLVerify trace: " + readLine.replaceAll("\\P{Print}", "□"), LogLevel.TRACE,
 					new LogTag(BasicLogger.LOG_TAG_TAG_ID, PersoSimLogTags.CLVERIFYA_TAG_ID));
 		}
 	}
