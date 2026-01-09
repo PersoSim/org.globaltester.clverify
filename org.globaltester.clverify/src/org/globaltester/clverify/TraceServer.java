@@ -75,8 +75,10 @@ public class TraceServer implements Runnable {
 				BasicLogger.logException("Unable to handle trace from ClVerify", e, LogLevel.ERROR,
 						new LogTag(BasicLogger.LOG_TAG_TAG_ID, PersoSimLogTags.CLVERIFYA_TAG_ID));
 			} finally {
-				serverSocket.close();
-				serverSocket = null;
+				if (serverSocket != null) {
+					serverSocket.close();
+					serverSocket = null;
+				}
 				curClientSocket = null;
 			}
 		} catch (IOException e) {
