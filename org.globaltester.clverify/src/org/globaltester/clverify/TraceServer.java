@@ -18,6 +18,7 @@ public class TraceServer implements Runnable {
 
 	private boolean interrupted = false;
 	private Thread serverThread;
+	private ServerSocket serverSocket = null;
 
 	public TraceServer() {
 		// do nothing
@@ -35,12 +36,21 @@ public class TraceServer implements Runnable {
 			try {
 				curClientSocket.close();
 			} catch (IOException e) {
-				BasicLogger.logException("Unable to close TraceSocket for to ClVerify", e, LogLevel.WARN,
+				BasicLogger.logException("Unable to close Client-TraceSocket for to ClVerify", e, LogLevel.WARN,
 						new LogTag(BasicLogger.LOG_TAG_TAG_ID, PersoSimLogTags.CLVERIFYA_TAG_ID));
 			}
 		}
 		if (serverThread != null) {
 			serverThread.interrupt();
+		}
+		if (serverSocket != null) {
+			try {
+				serverSocket.close();
+			} catch (IOException e) {
+				BasicLogger.logException("Unable to close Server-TraceSocket for to ClVerify", e, LogLevel.WARN,
+						new LogTag(BasicLogger.LOG_TAG_TAG_ID, PersoSimLogTags.CLVERIFYA_TAG_ID));
+			}
+			serverSocket = null;
 		}
 	}
 
@@ -53,19 +63,27 @@ public class TraceServer implements Runnable {
 						+ org.globaltester.clverify.preferences.PreferenceConstants.CL_VERIFY_TRACE_SERVER_PORT + "...",
 				LogLevel.INFO, new LogTag(BasicLogger.LOG_TAG_TAG_ID, PersoSimLogTags.CLVERIFYA_TAG_ID));
 
-		try (ServerSocket server = new ServerSocket(
-				org.globaltester.clverify.preferences.PreferenceConstants.CL_VERIFY_TRACE_SERVER_PORT);
-				Socket client = server.accept()) {
-			curClientSocket = client;
-			while (!interrupted) {
-				readAndHandleTraces(new BufferedReader(new InputStreamReader(client.getInputStream())));
+
+		try {
+			serverSocket = new ServerSocket(org.globaltester.clverify.preferences.PreferenceConstants.CL_VERIFY_TRACE_SERVER_PORT);
+			try (Socket client = serverSocket.accept()) {
+				curClientSocket = client;
+				while (!interrupted) {
+					readAndHandleTraces(new BufferedReader(new InputStreamReader(client.getInputStream())));
+				}
+			} catch (Exception e) {
+				BasicLogger.logException("Unable to handle trace from ClVerify", e, LogLevel.ERROR,
+						new LogTag(BasicLogger.LOG_TAG_TAG_ID, PersoSimLogTags.CLVERIFYA_TAG_ID));
+			} finally {
+				serverSocket.close();
+				serverSocket = null;
+				curClientSocket = null;
 			}
-		} catch (Exception e) {
-			BasicLogger.logException("Unable to handle trace from ClVerify", e, LogLevel.ERROR,
+		} catch (IOException e) {
+			BasicLogger.logException("Unable to handle create trace server for ClVerify", e, LogLevel.ERROR,
 					new LogTag(BasicLogger.LOG_TAG_TAG_ID, PersoSimLogTags.CLVERIFYA_TAG_ID));
-		} finally {
-			curClientSocket = null;
 		}
+
 
 	}
 
