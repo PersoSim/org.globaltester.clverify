@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: GT CL Verify
 Bundle-SymbolicName: org.globaltester.clverify;singleton:=true
-Bundle-Version: 4.1.6.qualifier
+Bundle-Version: 4.1.7.qualifier
 Bundle-Activator: org.globaltester.clverify.Activator
 Bundle-Vendor: secunet Security Networks AG
 Require-Bundle: 
